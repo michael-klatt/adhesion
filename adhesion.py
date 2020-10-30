@@ -8,10 +8,6 @@ import os
 from wave   import profile
 from patchy import sphere
 
-# TODO
-# flexible tethers
-# colors or clusters
-
 def parse():
     """Parse parameters from command line"""
     d = "Simulate patchy spheres and estimate their adhesion (all lengths in mu)"
