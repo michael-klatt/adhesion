@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
+import numba
 
 import argparse
 import os
@@ -138,12 +139,44 @@ def fractions_flexible(c, sphere, profile):
     # precise but slow distance of tethers to surface
     # hitting = profile.distance(start) < L
 
-    hitting = profile.parallel_interpolated(start[:,0],L) > start[:,2]
+    hitting = parallel_interpolated(start[:,0],L,
+                  profile.px, profile.pz,
+                  profile.tmp_b, profile.tmp_a, 
+                  profile.hl, profile.pN) > start[:,2]
 
     norm = np.sum(sphere.tethers[:,3])
     frac = np.sum(hitting * sphere.tethers[:,3])/norm
 
     return frac
+
+# Problem: unsupported array index type none in Tuple
+# https://stackoverflow.com/a/57916110/13995159
+@numba.njit()
+def parallel_interpolated(x, d,
+                          px, pz, tmp_b, tmp_a, hl, pN):
+    """Parallel surface: (x,z)-coordinates"""
+    """        """
+    """Input:  N vector of x coordinates"""
+    """        N vector distances of parallel surface """
+    """Output: N vector of z coordinate of parallel surface"""
+    # Coordinates of parallel curve
+    x_d = px[:,None] - d[None,:] * tmp_b[:,None] 
+    z_d = pz[:,None] + d[None,:] / tmp_a[:,None]
+
+    # Potential cusp with non-unique projection
+    idx = x_d//hl == (px//hl)[:,None]
+
+    x_p = x_d[idx].reshape(pN,-1)
+    z_p = z_d[idx].reshape(pN,-1)
+
+    bins = x[None,:] < x_p
+    digitize = np.argmax(bins,axis=0)
+    bigitize = digitize-1
+    i = 10
+    one = z_p[digitize,np.arange(len(digitize))]
+    two = z_p[bigitize,np.arange(len(bigitize))]
+
+    return (one + two)*0.5
 
 # ===================================================================
 

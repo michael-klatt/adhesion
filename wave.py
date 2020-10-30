@@ -66,31 +66,6 @@ class profile:
         out[:,1] = z_d[idx]
         return out
 
-    def parallel_interpolated(self, x, d):
-        """Parallel surface: (x,z)-coordinates"""
-        """        """
-        """Input:  N vector of x coordinates"""
-        """        N vector distances of parallel surface """
-        """Output: N vector of z coordinate of parallel surface"""
-        # Coordinates of parallel curve
-        x_d = self.px[:,None] - d[None,:] * self.tmp_b[:,None] 
-        z_d = self.pz[:,None] + d[None,:] / self.tmp_a[:,None]
-
-        # Potential cusp with non-unique projection
-        idx = x_d//self.hl == (self.px//self.hl)[:,None]
-
-        x_p = x_d[idx].reshape(self.pN,-1)
-        z_p = z_d[idx].reshape(self.pN,-1)
-
-        bins = x[None,:] < x_p
-        digitize = np.argmax(bins,axis=0)
-        bigitize = digitize-1
-        i = 10
-        one = z_p[digitize,np.arange(len(digitize))]
-        two = z_p[bigitize,np.arange(len(bigitize))]
-
-        return (one + two)*0.5
-
     def distance(self, xyz):
         """Distance of points to surface (slow)"""
         """        """
@@ -125,6 +100,5 @@ class profile:
 def root_finding(xs, x, z, surface):
     """Zero of function is x-coordinate of closest point"""
     return x - xs + (z - surface.wave(xs))* surface.D_wave(xs)
-
 
 
