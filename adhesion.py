@@ -25,47 +25,48 @@ def parse():
     group_5 = parser.add_argument_group(title='Tethers')
 
     # Simulation
-    group_1.add_argument('-p', '--prefix',       type=str, action='store',
-                         default='patchy-data/', help='Prefix of output files')
-    group_1.add_argument('--n_runs',             type=int, action='store',
-                         default=10,             help='Number of simulation runs')
+    defpref = '../patchy-data/'
+    group_1.add_argument('-p', '--prefix',     type=str, action='store',
+                         default=defpref,      help='Prefix of output files')
+    group_1.add_argument('--n_runs',           type=int, action='store',
+                         default=10,           help='Number of simulation runs')
     # Profile
-    group_2.add_argument('-A', '--amplitude',    type=float, action='store',
-                         default=0.30,           help='Amplitude of surface profile')
-    group_2.add_argument('-l', '--wavelength',   type=float, action='store',
-                         default=2.75,           help='Wavelength of surface profile')
-    group_2.add_argument('--dx',                 type=float, action='store',
-                         default=0.01,           help='Step-size in x')
+    group_2.add_argument('-A', '--amplitude',  type=float, action='store',
+                         default=0.30,         help='Amplitude of surface profile')
+    group_2.add_argument('-l', '--wavelength', type=float, action='store',
+                         default=2.75,         help='Wavelength of surface profile')
+    group_2.add_argument('--dx',               type=float, action='store',
+                         default=0.01,         help='Step-size in x')
     # Sphere
-    group_3.add_argument('-R', '--radius',       type=float, action='store',
-                         default=0.50,           help='Radius of sphere')
-    group_3.add_argument('-T', '--tether',       type=float, action='store',
-                         default=0.05,           help='Mean tether length')
-    group_3.add_argument('-dT',                  type=float, action='store',
-                         default=0.001,          help='Std. dev. of tether length')
+    group_3.add_argument('-R', '--radius',     type=float, action='store',
+                         default=0.50,         help='Radius of sphere')
+    group_3.add_argument('-T', '--tether',     type=float, action='store',
+                         default=0.05,         help='Mean tether length')
+    group_3.add_argument('-dT',                type=float, action='store',
+                         default=0.001,        help='Std. dev. of tether length')
     # Patches
-    group_4.add_argument('-P', '--patch',        type=float, action='store',
-                         default=0.125,          help='Radius of patch')
-    group_4.add_argument('--r_rsa',              type=float, action='store',
-                         default=0.75,           help='Radius of RSA cap')
-    group_4.add_argument('--n_rsa',              type=int, action='store',
-                         default=1000,           help='Number of RSA cap insertion trials')
+    group_4.add_argument('-P', '--patch',      type=float, action='store',
+                         default=0.125,        help='Radius of patch')
+    group_4.add_argument('--r_rsa',            type=float, action='store',
+                         default=0.75,         help='Radius of RSA cap')
+    group_4.add_argument('--n_rsa',            type=int, action='store',
+                         default=1000,         help='Number of RSA cap insertion trials')
     # Tethers
-    group_5.add_argument('-n',                   type=int, action='store',
-                         default=10000,          help='Mean num. of unif. distr. tethers')
-    group_5.add_argument('--adhesion',           type=float, action='store',
-                         default=5.0,            help='Increased adhesion in patches')
-    group_5.add_argument('--n_pp',               type=float, action='store',
-                         default=50.0,           help='Mean number of additional tethers per patche')
-    group_2.add_argument('--rigid',              action="store_true",
-                        default=False,           help='Are the tethers rigid?')
+    group_5.add_argument('-n',                 type=int, action='store',
+                         default=10000,        help='Mean num. of unif. distr. tethers')
+    group_5.add_argument('--adhesion',         type=float, action='store',
+                         default=5.0,          help='Increased adhesion in patches')
+    group_5.add_argument('--n_pp',             type=float, action='store',
+                         default=50.0,         help='Mean number of additional tethers per patch')
+    group_2.add_argument('--rigid',            action="store_true",
+                         default=False,        help='Are the tethers rigid?')
     return parser.parse_args()
 
 def main(args):
     """Main function"""
     os.makedirs(args.prefix, exist_ok=True)
 
-    for run in range(10):
+    for run in range(args.n_runs):
         main_run(args, args.prefix, run)
 
 def main_run(args, prefix, run):
@@ -136,12 +137,15 @@ def fractions_flexible(c, sphere, profile):
     start[:,0] += c[0] # x coord
     start[:,2] += c[1] # z coord
 
-    # distance of tethers to surface
-    dist = profile.distance(start)
-    reaching = dist < L
+    print(c[0])
+
+    # precise but slow distance of tethers to surface
+    # hitting = profile.distance(start) < L
+
+    hitting = profile.parallel_interpolated(start[:,0],L) > start[:,2]
 
     norm = np.sum(sphere.tethers[:,3])
-    frac = np.sum(reaching * sphere.tethers[:,3])/norm
+    frac = np.sum(hitting * sphere.tethers[:,3])/norm
 
     return frac
 

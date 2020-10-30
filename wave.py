@@ -22,10 +22,24 @@ class profile:
         self.dx = dx
         # x coordinates of profile (N vector)
         self.x = np.arange(-self.hl,self.hl,self.dx)
+        self.N = len(self.x)
         # z coordinates of profile (N vector)
         self.z = self.wave(self.x)
         # derivative of profile (N vector)
         self.D = self.D_wave(self.x)
+
+        # Auxiliary variables for interpolated parallel curve
+        # x coordinates of profile (N vector)
+        self.px = np.arange(-self.l*0.75,self.l*0.75,self.dx)
+        self.pN = len(self.px)
+        # z coordinates of profile (N vector)
+        self.pz = self.wave(self.px)
+        # derivative of profile (N vector)
+        self.pD = self.D_wave(self.px)
+        # distance variables
+        self.tmp_a = np.sqrt(1+self.pD**2)
+        self.tmp_b = self.pD/self.tmp_a
+
 
     def wave(self, x):
         """Surface profile"""
@@ -36,24 +50,49 @@ class profile:
         return -self.A*self.o*np.sin(self.o * x)
 
     def parallel_wave(self, d):
-        """Parallel surface: (x,y)-coordinates"""
+        """Parallel surface: (x,z)-coordinates"""
         """        """
         """Input: scalar d distance of parallel surface """
-        """Output: (N,2) matrix of (x,y) coordinates of centers of sphere"""
+        """Output: (N,2) matrix of (x,z) coordinates of centers of sphere"""
         # Coordinates of parallel curve
         x_d = self.x - d*self.D/np.sqrt(1+self.D**2)
-        y_d = self.z + d       /np.sqrt(1+self.D**2)
+        z_d = self.z + d       /np.sqrt(1+self.D**2)
 
         # Potential cusp with non-unique projection
         idx = x_d//self.hl == self.x//self.hl
 
         out = np.empty((np.sum(idx),2))
         out[:,0] = x_d[idx]
-        out[:,1] = y_d[idx]
+        out[:,1] = z_d[idx]
         return out
 
+    def parallel_interpolated(self, x, d):
+        """Parallel surface: (x,z)-coordinates"""
+        """        """
+        """Input:  N vector of x coordinates"""
+        """        N vector distances of parallel surface """
+        """Output: N vector of z coordinate of parallel surface"""
+        # Coordinates of parallel curve
+        x_d = self.px[:,None] - d[None,:] * self.tmp_b[:,None] 
+        z_d = self.pz[:,None] + d[None,:] / self.tmp_a[:,None]
+
+        # Potential cusp with non-unique projection
+        idx = x_d//self.hl == (self.px//self.hl)[:,None]
+
+        x_p = x_d[idx].reshape(self.pN,-1)
+        z_p = z_d[idx].reshape(self.pN,-1)
+
+        bins = x[None,:] < x_p
+        digitize = np.argmax(bins,axis=0)
+        bigitize = digitize-1
+        i = 10
+        one = z_p[digitize,np.arange(len(digitize))]
+        two = z_p[bigitize,np.arange(len(bigitize))]
+
+        return (one + two)*0.5
+
     def distance(self, xyz):
-        """Distance of points to surface"""
+        """Distance of points to surface (slow)"""
         """        """
         """Input:  (N,3) matrix of coordinates of points"""
         """Output: N vector of distances"""
@@ -86,5 +125,6 @@ class profile:
 def root_finding(xs, x, z, surface):
     """Zero of function is x-coordinate of closest point"""
     return x - xs + (z - surface.wave(xs))* surface.D_wave(xs)
+
 
 
