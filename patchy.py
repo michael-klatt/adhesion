@@ -17,13 +17,20 @@ class sphere:
         self.tethers = np.empty((0,5))
         # xyz coordinates of patch centers on sphere
         self.centers = np.empty((0,3))
+        # mean value of how many uniform tethers
+        self.N_pts_mean = 0
+        # how many tethers
+        self.N_pts = 0
 
     def uniform_tethers(self, N_pts):
         """Add tethers sampled uniformly on sphere"""
         """        """
-        """Input:  scalar N_pts number of points"""
-        t = np.random.uniform(0,2*math.pi,N_pts)
-        u = np.random.uniform(-1,1,N_pts)
+        """Input:  scalar N_pts mean number of points"""
+        self.N_pts_mean = N_pts
+        self.N_pts = np.random.poisson(N_pts)
+
+        t = np.random.uniform(0,2*math.pi,self.N_pts)
+        u = np.random.uniform(-1,1,self.N_pts)
         m = np.sqrt(1-u**2)
 
         x = m*np.cos(t)
@@ -31,12 +38,12 @@ class sphere:
         z = u
 
         # actual tether length 
-        dR = np.random.normal(self.T, self.dT, (N_pts,1))
+        dR = np.random.normal(self.T, self.dT, (self.N_pts,1))
 
         pts = np.concatenate([x.reshape(-1,1),
                               y.reshape(-1,1),
                               z.reshape(-1,1),
-                              np.ones((N_pts,1)),
+                              np.ones((self.N_pts,1)),
                               dR],axis=1)
 
         self.tethers = np.vstack([self.tethers,pts])
@@ -76,13 +83,41 @@ class sphere:
 
         self.tethers[ids,3] = adhesion
 
-    def cluster_patches(self, mean, r_patch):
+    def cluster_patches(self, ratio, r_patch):
         """For all patches: change adhesion of tethers in patches"""
         """        """
-        """Input:  scalar mean is mean number of additional tethers"""
+        """Input:  scalar ratio (> 1) of mean numbers of tethers: patch to background"""
         """        scalar r_patch radius of patch"""
-        # TODO: Missing
-        #dR = np.random.normal(self.T, self.dT, (N_pts,1))
+        assert(ratio > 1)
+
+        # How many additional tethers?
+        N_t = np.random.poisson((ratio-1) * self.N_pts_mean)
+
+        t = np.random.uniform(0,2*math.pi,N_t)
+        u = np.random.uniform(-1,1,N_t)
+        m = np.sqrt(1-u**2)
+
+        x = m*np.cos(t)
+        y = m*np.sin(t)
+        z = u
+
+        # actual tether length 
+        dR = np.random.normal(self.T, self.dT, (N_t,1))
+
+        pts = np.concatenate([x.reshape(-1,1),
+                              y.reshape(-1,1),
+                              z.reshape(-1,1),
+                              np.ones((N_t,1)),
+                              dR],axis=1)
+
+        # Find tethers in patches and only keep those
+        diff = np.abs(pts[:,:3,None]-self.centers[:,:,None].T)
+        D = np.sqrt( (diff**2).sum(1) )
+
+        ids = np.where(D < r_patch)[0]
+
+        self.tethers = np.vstack([self.tethers,pts[ids,:]])
+        self.N_pts += len(ids)
 
 def pairwise_distances(x):
     """PWD of points (rows of x)"""
