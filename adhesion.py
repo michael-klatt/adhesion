@@ -25,7 +25,9 @@ def parse():
     group_1.add_argument('-p', '--prefix',     type=str, action='store',
                          default=defpref,      help='Prefix of output files')
     group_1.add_argument('--n_runs',           type=int, action='store',
-                         default=10,           help='Number of simulation runs')
+                         default=14,           help='Number of simulation runs')
+    group_1.add_argument('--seed',             type=int, action='store',
+                         default=0,            help='Seed of simulation runs (0: no seed)')
     # Profile
     group_2.add_argument('-A', '--amplitude',  type=float, action='store',
                          default=0.30,         help='Amplitude of surface profile')
@@ -44,23 +46,26 @@ def parse():
     group_4.add_argument('-P', '--patch',      type=float, action='store',
                          default=0.125,        help='Radius of patch')
     group_4.add_argument('--r_rsa',            type=float, action='store',
-                         default=0.75,         help='Radius of RSA cap')
+                         default=0.85,         help='Radius of RSA cap')
     group_4.add_argument('--n_rsa',            type=int, action='store',
                          default=1000,         help='Number of RSA cap insertion trials')
     # Tethers
     group_5.add_argument('-n',                 type=int, action='store',
                          default=10000,        help='Mean num. of unif. distr. tethers')
     group_5.add_argument('--adhesion',         type=float, action='store',
-                         default=5.0,          help='Increased adhesion in patches')
-    group_5.add_argument('--n_pp',             type=float, action='store',
-                         default=50.0,         help='Mean number of additional tethers per patch')
+                         default=1.0,          help='Increased adhesion in patches')
+    group_5.add_argument('--cluster',          type=float, action='store',
+                         default=0.0,          help='Ratio of mean numbers of tethers: patch to background')
     group_2.add_argument('--rigid',            action="store_true",
-                         default=False,        help='Are the tethers rigid?')
+                         default=True,         help='Are the tethers rigid?')
     return parser.parse_args()
 
 def main(args):
     """Main function"""
     os.makedirs(args.prefix, exist_ok=True)
+
+    if args.seed:
+        np.random.seed(args.seed)
 
     for run in range(args.n_runs):
         main_run(args, args.prefix, run)
@@ -76,8 +81,8 @@ def main_run(args, prefix, run):
     sph.rsa_patch_centers(args.r_rsa, args.n_rsa)
     if args.adhesion != 1.0:
         sph.color_patches(args.adhesion, args.patch)
-    if args.n_pp > 0:
-        sph.cluster_patches(args.n_pp, args.patch)
+    if args.cluster > 0:
+        sph.cluster_patches(args.cluster, args.patch)
 
     # Wave profile
     wav = profile(args.amplitude, args.wavelength, args.dx)
@@ -132,8 +137,6 @@ def fractions_flexible(c, sphere, profile):
     start = sphere.R * sphere.tethers[:,:3]
     start[:,0] += c[0] # x coord
     start[:,2] += c[1] # z coord
-
-    print(c[0])
 
     # precise but slow distance of tethers to surface
     # hitting = profile.distance(start) < L
