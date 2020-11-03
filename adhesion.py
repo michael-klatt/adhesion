@@ -79,10 +79,10 @@ def main_run(args, prefix, run):
     #
     # Patches
     sph.rsa_patch_centers(args.r_rsa, args.n_rsa)
-    if args.adhesion != 1.0:
-        sph.color_patches(args.adhesion, args.patch)
     if args.cluster > 0:
         sph.cluster_patches(args.cluster, args.patch)
+    if args.adhesion != 1.0:
+        sph.color_patches(args.adhesion, args.patch)
 
     # Wave profile
     wav = profile(args.amplitude, args.wavelength, args.dx)
