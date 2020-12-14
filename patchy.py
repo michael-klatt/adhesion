@@ -52,9 +52,11 @@ class sphere:
         """Add patch centers using RSA"""
         """        """
         """Input:  scalar r_rsa radius of caps of RSA process"""
-        """        scalar N_trial number of cap insertion trials"""
-        t = np.random.uniform(0,2*math.pi,N_trial)
-        u = np.random.uniform(-1,1,N_trial)
+        """        scalar N_trial mean number of cap insertion trials"""
+        random_N_trial = np.random.poisson(N_trial)
+
+        t = np.random.uniform(0,2*math.pi,random_N_trial)
+        u = np.random.uniform(-1,1,random_N_trial)
         m = np.sqrt(1-u**2)
 
         x = m*np.cos(t)
@@ -66,7 +68,7 @@ class sphere:
                             z.reshape(-1,1)],axis=1)
 
         check = pairwise_distances(f) > r_rsa
-        check[np.tril_indices(N_trial,k=0)] = True
+        check[np.tril_indices(random_N_trial,k=0)] = True
         keep = np.all(check,axis = 0)
 
         self.centers = np.vstack([self.centers,f[keep,:]])

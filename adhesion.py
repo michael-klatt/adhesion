@@ -48,7 +48,7 @@ def parse():
     group_4.add_argument('--r_rsa',            type=float, action='store',
                          default=0.85,         help='Radius of RSA cap')
     group_4.add_argument('--n_rsa',            type=int, action='store',
-                         default=1000,         help='Number of RSA cap insertion trials')
+                         default=1000,         help='Mean number of RSA cap insertion trials')
     # Tethers
     group_5.add_argument('-n',                 type=int, action='store',
                          default=10000,        help='Mean num. of unif. distr. tethers')
