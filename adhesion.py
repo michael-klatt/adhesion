@@ -25,12 +25,12 @@ def parse():
     group_1.add_argument('-p', '--prefix',     type=str, action='store',
                          default=defpref,      help='Prefix of output files')
     group_1.add_argument('--n_runs',           type=int, action='store',
-                         default=14,           help='Number of simulation runs')
+                         default=28,           help='Number of simulation runs')
     group_1.add_argument('--seed',             type=int, action='store',
                          default=0,            help='Seed of simulation runs (0: no seed)')
     # Profile
     group_2.add_argument('-A', '--amplitude',  type=float, action='store',
-                         default=0.30,         help='Amplitude of surface profile')
+                         default=0.19,         help='Amplitude of surface profile')
     group_2.add_argument('-l', '--wavelength', type=float, action='store',
                          default=2.75,         help='Wavelength of surface profile')
     group_2.add_argument('--dx',               type=float, action='store',
@@ -51,7 +51,7 @@ def parse():
                          default=1000,         help='Mean number of RSA cap insertion trials')
     # Tethers
     group_5.add_argument('-n',                 type=int, action='store',
-                         default=10000,        help='Mean num. of unif. distr. tethers')
+                         default=50000,        help='Mean num. of unif. distr. tethers')
     group_5.add_argument('--adhesion',         type=float, action='store',
                          default=1.0,          help='Increased adhesion in patches')
     group_5.add_argument('--cluster',          type=float, action='store',
