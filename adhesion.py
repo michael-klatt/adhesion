@@ -47,7 +47,7 @@ def parse():
                          default=0.125,        help='Radius of patch')
     group_4.add_argument('--r_rsa',            type=float, action='store',
                          default=0.85,         help='Radius of RSA cap')
-    group_4.add_argument('--n_rsa',            type=int, action='store',
+    group_4.add_argument('--n_rsa',            type=float, action='store',
                          default=1000,         help='Mean number of RSA cap insertion trials')
     # Tethers
     group_5.add_argument('-n',                 type=int, action='store',
