@@ -4,6 +4,7 @@ Simulate patchy spheres and estimate the adhesion forces at sinusoidal surfaces.
 * Author: Michael A. Klatt
 * E-Mail: software@mklatt.org
 * Website: https://mklatt.org
+* License: GNU GPLv3
 
 ## 
 
